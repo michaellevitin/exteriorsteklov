@@ -1,0 +1,72 @@
+// Lukas Bundrock, Alexandre Girouard, Denis S. Grebenkov, Michael Levitin, and Iosif Polterovich
+// Exterior Steklov problem for the union of three disjoint disks via conformal transform
+// Script accompanying the paper "The exterior Steklov problem for Euclidean domains"
+//
+real xmin=-10, xmax=10, ymin=-10, ymax=10.; // limit of the output region
+real t;
+int np=150; 
+int nev=10; 
+ofstream fout("external-disks-data-web.txt");
+
+func real xdisk(real r, real c1, real c2) {return c1/(c1^2+c2^2-r^2);}
+func real ydisk(real r, real c1, real c2) {return -c2/(c1^2+c2^2-r^2);}
+func real rdisk(real r, real c1, real c2) {return r/abs(c1^2+c2^2-r^2);}
+func real[int] disk(real r, real c1, real c2) {real[int] D=[rdisk(r,c1,c2),xdisk(r,c1,c2),ydisk(r,c1,c2)]; return D;}
+
+real[int] disk0 = [1,0,0];
+real[int] disk1 = disk(2./3,-2,0);
+real[int] disk2 = disk(1.5,2,-2);
+
+
+border disk0star(t=0,2*pi) {x = disk0(1)+disk0(0)*cos(t); y=disk0(2)+disk0(0)*sin(t); label=1;}
+border disk1star(t=2*pi,0) {x = disk1(1)+disk1(0)*cos(t); y=disk1(2)+disk1(0)*sin(t); label=1;}
+border disk2star(t=2*pi,0) {x = disk2(1)+disk2(0)*cos(t); y=disk2(2)+disk2(0)*sin(t); label=1;}
+
+
+mesh Th0=buildmesh(disk0star(2*pi*np)+disk1star(pi*np)+disk2star(pi*np),nbvx=220000);
+plot(Th0, wait=1);
+fespace VhIn0(Th0,P2);
+VhIn0 v1,v2,v;
+varf DomIn0(v1,v2)=int2d(Th0)( dx(v1)*dx(v2) + dy(v1)*dy(v2));
+varf BoundIn0(v1,v2)=int1d(Th0,1)(1/(x^2+y^2)*v1*v2);
+matrix AIn0= DomIn0(VhIn0,VhIn0,solver=sparsesolver); 
+matrix BIn0= BoundIn0(VhIn0,VhIn0); 
+
+real[int] ev(nev);
+VhIn0[int] eV(nev); 
+int k=EigenValue(AIn0,BIn0,sym=true,sigma=0,value=ev,vector=eV,tol=1e-7,maxit=0,ncv=0);
+cout <<"external three disks eigenvalues\n";
+cout.fixed << ev << "\n";
+cout << Th0.nv << "\n"; 
+fout <<"external three disks eigenvalues\n";
+fout.fixed << ev << "\n";
+
+int nmesh=0; 
+int nmeshfull = Th0.nv;
+//cout << "nmeshfull=" << nmeshfull  << endl;
+real[int,int] data(nmeshfull,1+nev);
+
+for (int i = 0; i < nmeshfull; i++) {
+	real xCoord = Th0(i).x;
+	real yCoord = Th0(i).y;
+	real xOut = xCoord/(xCoord^2+yCoord^2);
+	real yOut = -yCoord/(xCoord^2+yCoord^2);
+	if ((xOut>=xmin) && (xOut<=xmax) && (yOut>=ymin) && (yOut<=ymax)) {
+		nmesh++;
+		data(nmesh-1,0)=xOut;
+		data(nmesh-1,1)=yOut;
+		for (int ne=1; ne < nev; ne++) {
+			data(nmesh-1,ne+1)=eV[ne](xCoord, yCoord);
+		}
+	} 
+}
+cout << "nmesh=" << nmesh  << endl;
+
+real[int,int] databox(nmesh,1+nev);
+for (int i = 0; i < nmesh; i++) {
+	for (int j = 0; j < 1+nev; j++) {
+		databox(i,j)=data(i,j);
+	}
+}
+
+fout << databox << endl;
