@@ -10,6 +10,7 @@ Scripts accompanying the paper [*The exterior Steklov problem for Euclidean doma
 * FreeFEM script for the disks [ExteriorSteklovDisks.edp](ExteriorSteklovDisks.edp)
 * Mathematica notebook for data processing and plotting [ExteriorSteklovKiteAndDisks.nb](ExteriorSteklovKiteAndDisks.nb)
 * Mathematica notebook's printout [ExteriorSteklovKiteAndDisks.nb.pdf](ExteriorSteklovKiteAndDisks.nb.pdf)
+* FreeFEM script for the interior problem in the kite [InteriorSteklovKite.edp](InteriorSteklovKite.edp)
 ### Extra figures:
 
 ![extra images for the kite](figUfsKiteAll.jpeg)
