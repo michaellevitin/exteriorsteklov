@@ -1,0 +1,27 @@
+// Lukas Bundrock, Alexandre Girouard, Denis S. Grebenkov, Michael Levitin, and Iosif Polterovich
+// Interior Steklov problem for the kite
+// Script accompanying the paper "The exterior Steklov problem for Euclidean domains"
+//
+real t;
+int npinner=800; 
+int nev=10; 
+
+func real xkite(real t) {return 1.5*cos(t)+0.7*cos(2*t)-0.4;}
+func real ykite(real t) {return 1.5*sin(t)-0.3*cos(t);}
+
+border kite(t=0,2*pi) {x = xkite(t); y= ykite(t); label=1;}
+
+mesh Th0=buildmesh(kite(npinner),nbvx=200000);
+plot(Th0, wait=1);
+fespace VhIn0(Th0,P2);
+VhIn0 v1,v2,v;
+varf DomIn0(v1,v2)=int2d(Th0)( dx(v1)*dx(v2) + dy(v1)*dy(v2));
+varf BoundIn0(v1,v2)=int1d(Th0,1)(v1*v2);
+matrix AIn0= DomIn0(VhIn0,VhIn0,solver=sparsesolver); 
+matrix BIn0= BoundIn0(VhIn0,VhIn0); 
+
+real[int] ev(nev);
+VhIn0[int] eV(nev); 
+int k=EigenValue(AIn0,BIn0,sym=true,sigma=0,value=ev,vector=eV,tol=1e-7,maxit=0,ncv=0);
+cout <<"kite eigenvalues\n";
+cout.fixed << ev << "\n";
